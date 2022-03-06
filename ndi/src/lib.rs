@@ -437,6 +437,45 @@ impl Debug for VideoData {
     }
 }
 
+/// Detailed video frame data
+pub struct VideoDataProperties {
+    /// Image resolution width
+    pub width: i32,
+
+    /// Image resolution height
+    pub height: i32,
+
+    /// FourCC video type
+    pub four_cc_video_type: FourCCVideoType,
+
+    /// Frame rate N (frame rate is calculated N/D)
+    pub frame_rate_n: i32,
+
+    /// Frame rate D (frame rate is calculated N/D)
+    pub frame_rate_d: i32,
+
+    /// Picture aspect ratio (usually width / height)
+    pub picture_aspect_ratio: f32,
+
+    /// Frame format type
+    pub frame_format_type: FrameFormatType,
+
+    /// Time code
+    pub timecode: i64,
+
+    /// Pointer to raw video data
+    pub p_data: *mut u8,
+
+    /// Line stride in bytes (usually 0)
+    pub line_stride_in_bytes: i32,
+
+    /// Pointer to metadata (if any)
+    pub p_metadata: *const i8,
+
+    /// Timestamp
+    pub timestamp: i64,
+}
+
 impl VideoData {
     fn from_binding_recv(
         recv: Arc<OnDrop<NDIlib_recv_instance_t>>,
@@ -466,6 +505,29 @@ impl VideoData {
                 },
                 p_metadata: null(),
                 timestamp: 0,
+            },
+            parent: VideoParent::Owned,
+        }
+    }
+
+    /// Create a video frame with data
+    pub fn from_properties(properties: &VideoDataProperties) -> Self {
+        Self {
+            p_instance: NDIlib_video_frame_v2_t {
+                xres: properties.width,
+                yres: properties.height,
+                FourCC: properties.four_cc_video_type as _,
+                frame_rate_N: properties.frame_rate_n,
+                frame_rate_D: properties.frame_rate_d,
+                picture_aspect_ratio: properties.picture_aspect_ratio,
+                frame_format_type: properties.frame_format_type as _,
+                timecode: properties.timecode,
+                p_data: properties.p_data,
+                __bindgen_anon_1: NDIlib_video_frame_v2_t__bindgen_ty_1 {
+                    line_stride_in_bytes: properties.line_stride_in_bytes,
+                },
+                p_metadata: properties.p_metadata,
+                timestamp: properties.timestamp,
             },
             parent: VideoParent::Owned,
         }
